@@ -1,0 +1,11 @@
+NVIDIA Q1 FY25 Quarterly Report
+
+Revenue reached record levels due to increased demand for AI infrastructure.
+
+The Blackwell GPU architecture was introduced to accelerate enterprise AI workloads.
+
+Cloud providers expanded investments in GPU clusters.
+
+The Data Center business achieved significant year-over-year growth.
+
+The company expects continued investment in generative AI technologies.
