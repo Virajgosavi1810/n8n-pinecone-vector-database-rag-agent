@@ -1,0 +1,374 @@
+{
+  "name": "Pinecone Vector Database Agent (Enhanced workflow with its previous due to n8n 2.28.2 LangChain bug/incompatibility)",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "c0ff7b6d-e3a5-4c3b-b2fc-ac16193a5240",
+      "name": "When clicking ‘Test workflow’",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        1600,
+        480
+      ]
+    },
+    {
+      "parameters": {
+        "model": "text-embedding-3-small",
+        "options": {}
+      },
+      "id": "6bb72115-2456-40e7-ad34-50d47b406bdc",
+      "name": "Embeddings OpenAI",
+      "type": "@n8n/n8n-nodes-langchain.embeddingsOpenAi",
+      "typeVersion": 1,
+      "position": [
+        2368,
+        960
+      ],
+      "credentials": {
+        "openAiApi": {
+          "id": "1VMKjiSJqADW5yc4",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "download",
+        "fileId": {
+          "__rl": true,
+          "value": "1sjshw0H62LcJllFnYYFpztPqQvrksc_n",
+          "mode": "list",
+          "cachedResultName": "NVDA-F1Q25-Quarterly-Presentation-FINAL.pdf",
+          "cachedResultUrl": "https://drive.google.com/file/d/1sjshw0H62LcJllFnYYFpztPqQvrksc_n/view?usp=drivesdk"
+        },
+        "options": {}
+      },
+      "id": "fa0dd32b-e85a-4c65-9b74-4f0431325f32",
+      "name": "Google Drive",
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        1776,
+        480
+      ],
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "t1ZJlw6yjE6AY3aY",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "dataType": "binary",
+        "options": {}
+      },
+      "id": "0e26b876-c27f-4e20-a07c-81107fbcc6f8",
+      "name": "Default Data Loader",
+      "type": "@n8n/n8n-nodes-langchain.documentDefaultDataLoader",
+      "typeVersion": 1,
+      "position": [
+        1808,
+        720
+      ]
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "00ae72de-7581-4cfc-8388-e54cf67439e7",
+      "name": "When chat message received",
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        2400,
+        480
+      ],
+      "webhookId": "f36e2b6f-8623-4281-9b99-19bcc6c100c8"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "6f80f788-c29c-4eb4-82d9-e007fe01dc0e",
+      "name": "OpenAI Chat Model",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1,
+      "position": [
+        2512,
+        704
+      ],
+      "credentials": {
+        "openAiApi": {
+          "id": "1VMKjiSJqADW5yc4",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chunkSize": 3000,
+        "chunkOverlap": 200,
+        "options": {}
+      },
+      "id": "e318afb2-35d2-4155-b1c5-9f72b4259f47",
+      "name": "Recursive Character Text Splitter",
+      "type": "@n8n/n8n-nodes-langchain.textSplitterRecursiveCharacterTextSplitter",
+      "typeVersion": 1,
+      "position": [
+        1712,
+        896
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "insert",
+        "pineconeIndex": {
+          "__rl": true,
+          "value": "n8n-pinecone-agent",
+          "mode": "list",
+          "cachedResultName": "n8n-pinecone-agent"
+        },
+        "options": {}
+      },
+      "id": "e31070db-bdca-4a6e-9208-0df11b9c560a",
+      "name": "Insert into Pinecone vector store",
+      "type": "@n8n/n8n-nodes-langchain.vectorStorePinecone",
+      "position": [
+        1936,
+        480
+      ],
+      "typeVersion": 1,
+      "credentials": {
+        "pineconeApi": {
+          "id": "E0XQ2MYr67ZLdhVO",
+          "name": "PineconeApi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {
+          "systemMessage": "You are a RAG assistant.\n\nFor EVERY user question, first search the Pinecone Vector Store.\n\nUse the retrieved documents to answer.\n\nIf no relevant documents are found, then say:\n\n\"I couldn't find that information in the uploaded documents.\"\n\nDo not answer from your own knowledge unless explicitly asked.",
+          "passthroughBinaryPdfs": true
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        2624,
+        480
+      ],
+      "id": "eeaf66cb-c915-4ade-94ca-d2f8a7c7942b",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {},
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.4,
+      "position": [
+        2656,
+        688
+      ],
+      "id": "fb8afe61-7e51-46b0-89a0-8ec7112cefc8",
+      "name": "Simple Memory"
+    },
+    {
+      "parameters": {
+        "mode": "retrieve-as-tool",
+        "toolDescription": "Work with your data in Pinecone Vector Store",
+        "pineconeIndex": {
+          "__rl": true,
+          "value": "n8n-pinecone-vectordb-agent",
+          "mode": "list",
+          "cachedResultName": "n8n-pinecone-vectordb-agent"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStorePinecone",
+      "typeVersion": 1.3,
+      "position": [
+        2784,
+        688
+      ],
+      "id": "b7d448c8-a10b-4773-bd6f-4ecad86da94c",
+      "name": "Pinecone Vector Store",
+      "credentials": {
+        "pineconeApi": {
+          "id": "E0XQ2MYr67ZLdhVO",
+          "name": "PineconeApi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "## Google Drive to Pinecone Database\n\nConvert complex documents to vectors and add to Pinecone Database for AI processing.",
+        "width": 416,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        1680,
+        272
+      ],
+      "typeVersion": 1,
+      "id": "d689c5af-c352-4695-abe3-4deaa42bcfc4",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "content": "## Ask any Questions related to uploaded document and get your answers through AI Agent which will get from Pinecone Vector store.",
+        "height": 144,
+        "width": 384
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        2448,
+        272
+      ],
+      "typeVersion": 1,
+      "id": "4526e5a9-a142-420d-a249-00fdcea186d1",
+      "name": "Sticky Note1"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Embeddings OpenAI": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Insert into Pinecone vector store",
+            "type": "ai_embedding",
+            "index": 0
+          },
+          {
+            "node": "Pinecone Vector Store",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When clicking ‘Test workflow’": {
+      "main": [
+        [
+          {
+            "node": "Google Drive",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Drive": {
+      "main": [
+        [
+          {
+            "node": "Insert into Pinecone vector store",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Default Data Loader": {
+      "ai_document": [
+        [
+          {
+            "node": "Insert into Pinecone vector store",
+            "type": "ai_document",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When chat message received": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Recursive Character Text Splitter": {
+      "ai_textSplitter": [
+        [
+          {
+            "node": "Default Data Loader",
+            "type": "ai_textSplitter",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Pinecone Vector Store": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "876473fc-63d6-4a03-a8ea-923840b2371e",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "3f21aaf8491157c44331f10f943768229b6695aa90fd86fc40ddb60f0a283c31"
+  },
+  "nodeGroups": [],
+  "id": "qoECKNSBRkXL5JWs",
+  "tags": [
+    {
+      "updatedAt": "2025-06-05T06:58:59.412Z",
+      "createdAt": "2025-06-05T06:58:59.412Z",
+      "id": "Ba1Vyb7BJb8L5WK7",
+      "name": "ET"
+    },
+    {
+      "updatedAt": "2025-06-05T06:58:59.444Z",
+      "createdAt": "2025-06-05T06:58:59.444Z",
+      "id": "IkoJWBxO2KOLpNNX",
+      "name": "From POC sheet"
+    },
+    {
+      "updatedAt": "2025-10-27T08:56:35.862Z",
+      "createdAt": "2025-10-27T08:56:35.862Z",
+      "id": "4VGoJKQCTJHU7PTY",
+      "name": "viraj-n8n"
+    }
+  ]
+}
